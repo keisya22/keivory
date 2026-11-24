@@ -56,13 +56,6 @@
     .animate-float {
       animation: floatSlow 3s ease-in-out infinite;
     }
-    @keyframes popIn {
-      0% { transform: scale(0.85); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    .animate-pop {
-      animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
   </style>
 </head>
 <body id="page-body" class="text-coquette-text min-h-screen flex flex-col font-sans pb-28">
@@ -77,9 +70,11 @@
   </div>
 
   <!-- Toast Notifikasi Tambah ke Keranjang -->
-  <div id="cart-toast" class="fixed top-12 left-1/2 -translate-x-1/2 z-[9999999] hidden bg-gray-900/90 backdrop-blur-md text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
-    <span class="text-pink-400">🛍️</span>
-    <span id="cart-toast-text">Ditambahkan ke keranjang!</span>
+  <div id="cart-toast" class="fixed top-12 left-0 right-0 z-[9999999] hidden flex justify-center px-4 pointer-events-none">
+    <div class="bg-gray-900/90 backdrop-blur-md text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
+      <span class="text-pink-400">🛍️</span>
+      <span id="cart-toast-text">Ditambahkan ke keranjang!</span>
+    </div>
   </div>
 
   <!-- Peringatan Jika Toko Sedang Offline / Close -->
@@ -270,7 +265,7 @@
         <span id="catalog-page-badge">Semua Katalog</span>
       </div>
       <!-- Tombol Keranjang di Atas Katalog -->
-      <button type="button" onclick="openCartModal()" class="relative px-3 py-2 rounded-full bg-white border border-pink-200 text-pink-600 flex items-center gap-1 shadow-2xs hover:bg-pink-50 transition" title="Keranjang">
+      <button type="button" onclick="openCartModal()" class="relative px-3.5 py-2 rounded-full bg-white border border-pink-200 text-pink-600 flex items-center gap-1.5 shadow-2xs hover:bg-pink-50 transition" title="Keranjang">
         <i data-lucide="shopping-cart" class="w-4 h-4"></i>
         <span id="top-cart-badge" class="text-[10px] font-extrabold bg-pink-500 text-white px-1.5 py-0.2 rounded-full">0</span>
       </button>
@@ -462,25 +457,13 @@
   </div>
 
   <!-- ======================================================== -->
-  <!-- FLOATING CART BAR (MUNCUL OTOMATIS SAAT KERANJANG ISI)   -->
+  <!-- TOMBOL KERANJANG BULAT KECIL DI POJOK KANAN BAWAH        -->
   <!-- ======================================================== -->
-  <div id="floating-cart-bar" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-[9998] w-[92%] max-w-md animate-pop">
-    <button type="button" onclick="openCartModal()" class="w-full bg-gradient-to-r from-pink-500 via-pink-500 to-sky-500 text-white rounded-2xl px-4 py-3 shadow-lg border-2 border-white flex items-center justify-between hover:opacity-95 transition">
-      <div class="flex items-center gap-3">
-        <div class="relative w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-          <i data-lucide="shopping-cart" class="w-5 h-5"></i>
-          <span id="float-cart-count" class="absolute -top-1.5 -right-1.5 bg-white text-pink-600 text-[10px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center shadow-xs">0</span>
-        </div>
-        <div class="text-left">
-          <p class="text-[11px] font-semibold text-pink-100">Keranjang Belanja</p>
-          <p id="float-cart-total" class="text-xs sm:text-sm font-extrabold">Rp 0</p>
-        </div>
-      </div>
-      <span class="bg-white text-pink-600 text-xs font-extrabold px-3.5 py-1.5 rounded-xl flex items-center gap-1 shadow-2xs">
-        Lihat Keranjang <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-      </span>
-    </button>
-  </div>
+  <button type="button" id="floating-cart-btn" onclick="openCartModal()" title="Buka Keranjang Belanja"
+          class="hidden fixed bottom-20 right-4 z-[9998] w-13 h-13 p-3.5 rounded-full bg-gradient-to-tr from-pink-500 to-sky-400 text-white shadow-lg border-2 border-white flex items-center justify-center hover:scale-105 transition">
+    <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+    <span id="float-cart-count" class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-extrabold w-5 h-5 rounded-full border-2 border-white flex items-center justify-center shadow-xs">0</span>
+  </button>
 
   <!-- ======================================================== -->
   <!-- BOTTOM NAVIGATION BAR                                    -->
@@ -638,9 +621,7 @@
       </div>
 
       <!-- Isi Daftar Keranjang -->
-      <div id="cart-items-container" class="p-5 overflow-y-auto space-y-3 custom-scrollbar flex-grow">
-        <!-- Daftar item keranjang dirender via JS -->
-      </div>
+      <div id="cart-items-container" class="p-5 overflow-y-auto space-y-3 custom-scrollbar flex-grow"></div>
 
       <!-- Catatan Umum Order -->
       <div id="cart-note-box" class="px-5 pb-2">
@@ -768,7 +749,6 @@
     let currentQty = 1;
     let selectedReviewStar = 5;
 
-    // State Keranjang Belanja (Tersimpan otomatis di localStorage browser)
     let cartItems = [];
     try {
       const saved = localStorage.getItem('keivory_cart_v1');
@@ -1377,7 +1357,6 @@
       const note = document.getElementById('modal-note').value.trim();
       const unitPrice = parsePriceNumber(variant.harga);
 
-      // Cek apakah produk + varian + catatan yang sama sudah ada di keranjang
       const existingIdx = cartItems.findIndex(item => 
         item.nama === currentModalProduct.nama && 
         item.variantLabel === variant.label &&
@@ -1406,9 +1385,7 @@
 
     function updateCartUI() {
       const totalQty = cartItems.reduce((sum, item) => sum + item.qty, 0);
-      const totalHarga = cartItems.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
 
-      // Update badge atas katalog & modal
       const topBadge = document.getElementById('top-cart-badge');
       if (topBadge) topBadge.textContent = totalQty;
 
@@ -1419,15 +1396,16 @@
         else modalBadge.classList.add('hidden');
       }
 
-      // Floating Cart Bar
-      const floatBar = document.getElementById('floating-cart-bar');
-      if (totalQty > 0) {
-        floatBar.classList.remove('hidden');
-        document.getElementById('float-cart-count').textContent = totalQty;
-        document.getElementById('float-cart-total').textContent = totalHarga > 0 ? formatRupiah(totalHarga) : `${totalQty} Item dipilih`;
-      } else {
-        floatBar.classList.add('hidden');
+      const floatBtn = document.getElementById('floating-cart-btn');
+      if (floatBtn) {
+        if (totalQty > 0) {
+          floatBtn.classList.remove('hidden');
+          document.getElementById('float-cart-count').textContent = totalQty;
+        } else {
+          floatBtn.classList.add('hidden');
+        }
       }
+      refreshIcons();
     }
 
     function openCartModal() {
@@ -1573,7 +1551,6 @@
       window.open(`https://wa.me/${cleanWa}?text=${encodeURIComponent(message)}`, '_blank');
     }
 
-    // Order Langsung 1 Produk
     function submitModalOrder() {
       if (!isStoreOnline) {
         alert(settings.pesan_offline || "Maaf kak, seller sedang close sementara.");
@@ -1596,7 +1573,6 @@
       window.open(`https://wa.me/${cleanWa}?text=${encodeURIComponent(message)}`, '_blank');
     }
 
-    // Render Daftar Review & Modal Kirim Review ke WA
     function renderReviews() {
       const container = document.getElementById('review-container');
       container.innerHTML = reviewsData.map(rev => `
