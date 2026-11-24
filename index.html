@@ -56,9 +56,16 @@
     .animate-float {
       animation: floatSlow 3s ease-in-out infinite;
     }
+    @keyframes popIn {
+      0% { transform: scale(0.85); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
   </style>
 </head>
-<body id="page-body" class="text-coquette-text min-h-screen flex flex-col font-sans pb-24">
+<body id="page-body" class="text-coquette-text min-h-screen flex flex-col font-sans pb-28">
 
   <!-- Pengumuman Berjalan -->
   <div class="bg-gradient-to-r from-pink-200 via-sky-100 to-pink-200 text-xs py-2 px-4 border-b border-pink-200 flex items-center justify-between overflow-hidden shadow-2xs sticky top-0 z-30">
@@ -67,6 +74,12 @@
       <span id="txt-running">Selamat datang! Semua produk digital diproses cepat & bergaransi. • Open Daily 09.00 - 22.00 WIB</span>
       <span>🎀</span>
     </div>
+  </div>
+
+  <!-- Toast Notifikasi Tambah ke Keranjang -->
+  <div id="cart-toast" class="fixed top-12 left-1/2 -translate-x-1/2 z-[9999999] hidden bg-gray-900/90 backdrop-blur-md text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
+    <span class="text-pink-400">🛍️</span>
+    <span id="cart-toast-text">Ditambahkan ke keranjang!</span>
   </div>
 
   <!-- Peringatan Jika Toko Sedang Offline / Close -->
@@ -128,7 +141,7 @@
       </div>
     </div>
 
-    <!-- Kartu Pintasan Kategori (Promo Cards Otomatis dari Sheets) -->
+    <!-- Kartu Pintasan Kategori -->
     <div class="space-y-3">
       <div class="flex items-center justify-between px-1">
         <h2 class="text-base sm:text-lg font-extrabold text-gray-800 flex items-center gap-2">
@@ -139,7 +152,7 @@
       <div id="home-category-cards" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
     </div>
 
-    <!-- Panduan Cara Order (Editable dari Sheets: cara_order_1 s/d cara_order_4) -->
+    <!-- Panduan Cara Order -->
     <div class="bg-white rounded-[2rem] p-6 border border-pink-100 shadow-sm">
       <div class="flex justify-center mb-5">
         <span class="bg-gradient-to-r from-pink-500 to-sky-400 text-white text-xs sm:text-sm font-extrabold px-5 py-2 rounded-full shadow-2xs flex items-center gap-2">
@@ -172,7 +185,7 @@
               <span class="bg-sky-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">2</span>
               <h3 id="txt-step2-title" class="text-xs sm:text-sm font-extrabold text-gray-800">Pilih Paket / Varian & Jumlah</h3>
             </div>
-            <p id="txt-step2-desc" class="text-xs text-gray-500 mt-1 leading-relaxed">Tentukan durasi paket atau metode via yang sesuai, atur jumlah, dan tulis catatan (email/ID game) jika perlu.</p>
+            <p id="txt-step2-desc" class="text-xs text-gray-500 mt-1 leading-relaxed">Tentukan durasi paket atau metode via yang sesuai, atur jumlah, dan masukkan ke keranjang atau order langsung.</p>
           </div>
         </div>
 
@@ -186,7 +199,7 @@
               <span class="bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">3</span>
               <h3 id="txt-step3-title" class="text-xs sm:text-sm font-extrabold text-gray-800">Kirim Pesanan ke WhatsApp Admin</h3>
             </div>
-            <p id="txt-step3-desc" class="text-xs text-gray-500 mt-1 leading-relaxed">Klik tombol Order Sekarang, rincian pesanan otomatis dibuat ke WhatsApp. Lakukan pembayaran via QRIS/E-Wallet.</p>
+            <p id="txt-step3-desc" class="text-xs text-gray-500 mt-1 leading-relaxed">Klik tombol Order Sekarang / Checkout Keranjang, rincian pesanan otomatis dibuat ke WhatsApp.</p>
           </div>
         </div>
 
@@ -243,11 +256,11 @@
   </div>
 
   <!-- ======================================================== -->
-  <!-- HALAMAN 2: KATALOG PRODUK (HALAMAN TERPISAH ALA APLIKASI) -->
+  <!-- HALAMAN 2: KATALOG PRODUK                                -->
   <!-- ======================================================== -->
   <div id="page-katalog" class="page-view hidden max-w-3xl w-full mx-auto p-4 sm:p-6 space-y-5">
     
-    <!-- Top Bar Navigasi Katalog (< Beranda | Judul Kategori) -->
+    <!-- Top Bar Navigasi Katalog -->
     <div class="flex items-center justify-between gap-2">
       <button type="button" onclick="navigateTo('home')" class="px-4 py-2 rounded-full bg-white border border-pink-200 text-pink-600 text-xs font-extrabold shadow-2xs hover:bg-pink-50 transition flex items-center gap-1">
         <i data-lucide="chevron-left" class="w-4 h-4"></i> Beranda
@@ -256,8 +269,10 @@
         <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
         <span id="catalog-page-badge">Semua Katalog</span>
       </div>
-      <button type="button" onclick="navigateTo('payment')" class="w-9 h-9 rounded-full bg-white border border-pink-200 text-pink-500 flex items-center justify-center shadow-2xs hover:bg-pink-50" title="Payment">
-        <i data-lucide="wallet" class="w-4 h-4"></i>
+      <!-- Tombol Keranjang di Atas Katalog -->
+      <button type="button" onclick="openCartModal()" class="relative px-3 py-2 rounded-full bg-white border border-pink-200 text-pink-600 flex items-center gap-1 shadow-2xs hover:bg-pink-50 transition" title="Keranjang">
+        <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+        <span id="top-cart-badge" class="text-[10px] font-extrabold bg-pink-500 text-white px-1.5 py-0.2 rounded-full">0</span>
       </button>
     </div>
 
@@ -267,7 +282,7 @@
         <p class="text-[11px] font-extrabold text-pink-500 uppercase tracking-wider">Welcome, Cutie! ♡</p>
         <h2 id="catalog-hero-title" class="text-xl sm:text-2xl font-extrabold text-gray-800 mt-0.5 leading-tight">Katalog Produk Digital</h2>
         <p id="catalog-hero-desc" class="text-xs text-gray-500 mt-1.5 leading-relaxed max-w-md">
-          Pilih layanan favoritmu di bawah ini, ketuk kartu untuk melihat pilihan paket & harga lengkap!
+          Pilih layanan favoritmu di bawah ini, bisa masukin beberapa produk ke keranjang sekaligus ya!
         </p>
       </div>
       <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-br from-pink-100 to-sky-100 border border-pink-200 flex items-center justify-center flex-shrink-0 animate-float text-3xl shadow-2xs" id="catalog-hero-emoji">
@@ -447,7 +462,28 @@
   </div>
 
   <!-- ======================================================== -->
-  <!-- BOTTOM NAVIGATION BAR (ALA APLIKASI MOBILE COQUETTE)     -->
+  <!-- FLOATING CART BAR (MUNCUL OTOMATIS SAAT KERANJANG ISI)   -->
+  <!-- ======================================================== -->
+  <div id="floating-cart-bar" class="hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-[9998] w-[92%] max-w-md animate-pop">
+    <button type="button" onclick="openCartModal()" class="w-full bg-gradient-to-r from-pink-500 via-pink-500 to-sky-500 text-white rounded-2xl px-4 py-3 shadow-lg border-2 border-white flex items-center justify-between hover:opacity-95 transition">
+      <div class="flex items-center gap-3">
+        <div class="relative w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+          <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+          <span id="float-cart-count" class="absolute -top-1.5 -right-1.5 bg-white text-pink-600 text-[10px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center shadow-xs">0</span>
+        </div>
+        <div class="text-left">
+          <p class="text-[11px] font-semibold text-pink-100">Keranjang Belanja</p>
+          <p id="float-cart-total" class="text-xs sm:text-sm font-extrabold">Rp 0</p>
+        </div>
+      </div>
+      <span class="bg-white text-pink-600 text-xs font-extrabold px-3.5 py-1.5 rounded-xl flex items-center gap-1 shadow-2xs">
+        Lihat Keranjang <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+      </span>
+    </button>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- BOTTOM NAVIGATION BAR                                    -->
   <!-- ======================================================== -->
   <nav class="fixed bottom-0 left-0 right-0 z-[9999] bg-white/95 backdrop-blur-md border-t border-pink-100 shadow-[0_-4px_20px_rgba(236,72,153,0.08)]">
     <div class="max-w-lg mx-auto px-2 py-2 flex items-center justify-around">
@@ -498,11 +534,15 @@
     <div class="bg-[#FFFDF9] w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-pink-100 max-h-[92vh] flex flex-col overflow-hidden">
       
       <!-- Top Bar Modal -->
-      <div class="bg-white px-5 py-4 border-b border-pink-100 flex items-center gap-3 sticky top-0 z-10">
+      <div class="bg-white px-5 py-4 border-b border-pink-100 flex items-center justify-between gap-3 sticky top-0 z-10">
         <button type="button" onclick="closeProductModal()" class="text-pink-500 hover:text-pink-600 font-bold text-sm flex items-center gap-1 transition">
           <i data-lucide="chevron-left" class="w-5 h-5"></i> Kembali
         </button>
         <h3 id="modal-header-title" class="font-extrabold text-gray-800 text-sm uppercase tracking-wide truncate">NAMA PRODUK</h3>
+        <button type="button" onclick="closeProductModal(); openCartModal();" class="relative text-pink-500 hover:text-pink-600 p-1">
+          <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+          <span id="modal-cart-badge" class="hidden absolute -top-1 -right-1 bg-pink-500 text-white text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+        </button>
       </div>
 
       <!-- Isi Modal Scrollable -->
@@ -549,21 +589,78 @@
 
         <!-- Catatan Tambahan -->
         <div>
-          <label class="block text-sm font-extrabold text-gray-800 mb-2">Catatan Tambahan (Opsional):</label>
+          <label class="block text-sm font-extrabold text-gray-800 mb-2">Catatan Produk Ini (Opsional):</label>
           <input type="text" id="modal-note" placeholder="Contoh: Email invite / Username Roblox / ID Game" 
                  class="w-full bg-white border border-pink-100 rounded-2xl px-4 py-3 text-xs text-gray-700 placeholder-gray-400 focus:outline-none focus:border-pink-400">
         </div>
 
       </div>
 
-      <!-- Footer Modal -->
-      <div class="bg-white p-4 pb-6 sm:pb-4 border-t border-pink-100 flex items-center justify-between gap-3">
-        <div>
-          <p class="text-[11px] text-gray-400 font-medium">Total Estimasi</p>
-          <p id="modal-total-price" class="text-base font-extrabold text-pink-600">Rp 0</p>
+      <!-- Footer Modal: Tambah Keranjang & Order Langsung -->
+      <div class="bg-white p-4 pb-6 sm:pb-4 border-t border-pink-100 space-y-2.5">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-xs text-gray-400 font-medium">Subtotal Item Ini</span>
+          <span id="modal-total-price" class="text-base font-extrabold text-pink-600">Rp 0</span>
         </div>
-        <button type="button" onclick="submitModalOrder()" id="modal-order-btn" class="px-5 py-3 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white text-xs sm:text-sm font-bold transition flex items-center gap-2 shadow-sm">
-          <i data-lucide="shopping-bag" class="w-4 h-4"></i> Order Sekarang
+        <div class="grid grid-cols-2 gap-2.5">
+          <button type="button" onclick="addCurrentProductToCart()" id="modal-add-cart-btn" class="py-3 px-3 rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs font-extrabold transition flex items-center justify-center gap-1.5">
+            <i data-lucide="shopping-cart" class="w-4 h-4"></i> + Keranjang
+          </button>
+          <button type="button" onclick="submitModalOrder()" id="modal-order-btn" class="py-3 px-3 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white text-xs font-extrabold transition flex items-center justify-center gap-1.5 shadow-sm">
+            <i data-lucide="send" class="w-4 h-4"></i> Order Langsung
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL 2: KERANJANG BELANJA (MULTI-PRODUK CHECKOUT)       -->
+  <!-- ======================================================== -->
+  <div id="cart-modal" class="fixed inset-0 z-[999999] hidden bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-[#FFFDF9] w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-pink-100 max-h-[90vh] flex flex-col overflow-hidden">
+      
+      <!-- Header Keranjang -->
+      <div class="bg-white px-5 py-4 border-b border-pink-100 flex items-center justify-between sticky top-0 z-10">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">🛍️</span>
+          <h3 class="font-extrabold text-gray-800 text-sm sm:text-base">Keranjang Belanja</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="clearCart()" id="btn-clear-cart" class="text-[11px] font-bold text-rose-500 hover:underline px-2 py-1">
+            Kosongkan
+          </button>
+          <button type="button" onclick="closeCartModal()" class="text-gray-400 hover:text-pink-500 p-1">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Isi Daftar Keranjang -->
+      <div id="cart-items-container" class="p-5 overflow-y-auto space-y-3 custom-scrollbar flex-grow">
+        <!-- Daftar item keranjang dirender via JS -->
+      </div>
+
+      <!-- Catatan Umum Order -->
+      <div id="cart-note-box" class="px-5 pb-2">
+        <input type="text" id="cart-global-note" placeholder="Catatan tambahan keseluruhan (opsional)..." 
+               class="w-full bg-white border border-pink-100 rounded-2xl px-4 py-2.5 text-xs text-gray-700 placeholder-gray-400 focus:outline-none focus:border-pink-400">
+      </div>
+
+      <!-- Footer Checkout Keranjang -->
+      <div class="bg-white p-4 pb-6 sm:pb-4 border-t border-pink-100 space-y-3">
+        <div class="flex items-center justify-between px-1">
+          <div>
+            <p class="text-[11px] text-gray-400 font-medium">Total Semua Pesanan</p>
+            <p id="cart-modal-total" class="text-lg font-extrabold text-pink-600">Rp 0</p>
+          </div>
+          <button type="button" onclick="closeCartModal(); openCatalogPage('Semua');" class="text-xs font-bold text-sky-600 hover:underline">
+            + Tambah Produk Lain
+          </button>
+        </div>
+        <button type="button" onclick="checkoutCartToWA()" id="btn-checkout-cart" class="w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs sm:text-sm font-extrabold shadow-sm transition flex items-center justify-center gap-2">
+          <i data-lucide="message-circle" class="w-4 h-4"></i> Checkout Semua via WhatsApp
         </button>
       </div>
 
@@ -571,7 +668,7 @@
   </div>
 
   <!-- ======================================================== -->
-  <!-- MODAL 2: FORM KIRIM HONEST REVIEW KE WA ADMIN            -->
+  <!-- MODAL 3: FORM KIRIM HONEST REVIEW KE WA ADMIN            -->
   <!-- ======================================================== -->
   <div id="review-modal" class="fixed inset-0 z-[999999] hidden bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-[#FFFDF9] w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border border-pink-100 overflow-hidden">
@@ -642,8 +739,8 @@
       keunggulan_2: "Full Garansi | Klaim garansi mudah dan anti ribet bila ada kendala pada akun.",
       keunggulan_3: "Harga Ramah | Harga pelajar dan promo menarik setiap minggunya.",
       cara_order_1: "Pilih Produk & Layanan | Buka katalog sesuai kategori, lalu ketuk produk aplikasi, game, atau layanan yang kamu inginkan.",
-      cara_order_2: "Pilih Paket / Varian & Jumlah | Tentukan durasi paket atau metode via yang sesuai, atur jumlah, dan tulis catatan (email/ID game) jika perlu.",
-      cara_order_3: "Kirim Pesanan ke WhatsApp Admin | Klik tombol Order Sekarang, rincian pesanan otomatis dibuat ke WhatsApp. Lakukan pembayaran via QRIS/E-Wallet.",
+      cara_order_2: "Pilih Paket / Varian & Jumlah | Tentukan durasi paket atau metode via yang sesuai, atur jumlah, dan masukkan ke keranjang atau order langsung.",
+      cara_order_3: "Kirim Pesanan ke WhatsApp Admin | Klik tombol Order Sekarang / Checkout Keranjang, rincian pesanan otomatis dibuat ke WhatsApp.",
       cara_order_4: "Pesanan Diproses & Bergaransi | Admin memproses pesananmu dengan cepat. Jangan lupa tinggalkan Honest Review setelah selesai ya!",
       running_text: "Selamat datang! Semua produk digital diproses cepat & bergaransi. • Open Daily 09.00 - 22.00 WIB",
       whatsapp: "6281234567890",
@@ -670,6 +767,30 @@
     let selectedVariantIndex = 0;
     let currentQty = 1;
     let selectedReviewStar = 5;
+
+    // State Keranjang Belanja (Tersimpan otomatis di localStorage browser)
+    let cartItems = [];
+    try {
+      const saved = localStorage.getItem('keivory_cart_v1');
+      if (saved) cartItems = JSON.parse(saved);
+    } catch (e) { cartItems = []; }
+
+    function saveCart() {
+      try {
+        localStorage.setItem('keivory_cart_v1', JSON.stringify(cartItems));
+      } catch (e) {}
+      updateCartUI();
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('cart-toast');
+      document.getElementById('cart-toast-text').textContent = msg;
+      toast.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 2200);
+    }
 
     function refreshIcons() {
       if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -725,7 +846,7 @@
       if (cat === "Semua") {
         badge.textContent = "Semua Katalog";
         title.textContent = "Katalog Produk Digital";
-        desc.textContent = "Temukan aplikasi premium, top up game, dan layanan digital lainnya. Ketuk kartu untuk melihat pilihan paket!";
+        desc.textContent = "Pilih layanan favoritmu di bawah ini, bisa masukin beberapa produk ke keranjang sekaligus ya!";
         emoji.textContent = "🎀";
       } else {
         badge.textContent = cat;
@@ -797,7 +918,7 @@
     }
 
     function formatRupiah(num) {
-      if (!num || num <= 0) return null;
+      if (!num || num <= 0) return 'Rp 0';
       return 'Rp ' + num.toLocaleString('id-ID');
     }
 
@@ -903,7 +1024,6 @@
         }
       });
 
-      // Update Panduan Cara Order dari Sheets (cara_order_1 s/d cara_order_4)
       [1, 2, 3, 4].forEach(num => {
         const raw = settings[`cara_order_${num}`];
         if (raw) {
@@ -1155,21 +1275,27 @@
 
       const offlineAlert = document.getElementById('modal-offline-alert');
       const orderBtn = document.getElementById('modal-order-btn');
+      const addCartBtn = document.getElementById('modal-add-cart-btn');
 
       if (!isStoreOnline) {
         offlineAlert.classList.remove('hidden');
         orderBtn.disabled = true;
-        orderBtn.className = "px-5 py-3 rounded-2xl bg-gray-300 text-gray-500 text-xs sm:text-sm font-bold cursor-not-allowed flex items-center gap-2";
-        orderBtn.innerHTML = `<i data-lucide="lock" class="w-4 h-4"></i> Toko Sedang Close`;
+        orderBtn.className = "py-3 px-3 rounded-2xl bg-gray-300 text-gray-500 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-1.5";
+        orderBtn.innerHTML = `<i data-lucide="lock" class="w-4 h-4"></i> Toko Close`;
+        addCartBtn.disabled = true;
+        addCartBtn.className = "py-3 px-3 rounded-2xl bg-gray-200 text-gray-400 text-xs font-bold cursor-not-allowed flex items-center justify-center gap-1.5";
       } else {
         offlineAlert.classList.add('hidden');
         orderBtn.disabled = false;
-        orderBtn.className = "px-5 py-3 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white text-xs sm:text-sm font-bold transition flex items-center gap-2 shadow-sm";
-        orderBtn.innerHTML = `<i data-lucide="shopping-bag" class="w-4 h-4"></i> Order Sekarang`;
+        orderBtn.className = "py-3 px-3 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white text-xs font-extrabold transition flex items-center justify-center gap-1.5 shadow-sm";
+        orderBtn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i> Order Langsung`;
+        addCartBtn.disabled = false;
+        addCartBtn.className = "py-3 px-3 rounded-2xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs font-extrabold transition flex items-center justify-center gap-1.5";
       }
 
       renderModalVariants();
       updateModalTotal();
+      updateCartUI();
 
       document.getElementById('product-modal').classList.remove('hidden');
       document.body.style.overflow = 'hidden';
@@ -1238,6 +1364,216 @@
       }
     }
 
+    // =========================================================
+    // LOGIKA KERANJANG BELANJA (MULTI-PRODUK)
+    // =========================================================
+    function addCurrentProductToCart() {
+      if (!isStoreOnline) {
+        alert(settings.pesan_offline || "Maaf kak, seller sedang close sementara.");
+        return;
+      }
+
+      const variant = currentModalProduct.variants[selectedVariantIndex];
+      const note = document.getElementById('modal-note').value.trim();
+      const unitPrice = parsePriceNumber(variant.harga);
+
+      // Cek apakah produk + varian + catatan yang sama sudah ada di keranjang
+      const existingIdx = cartItems.findIndex(item => 
+        item.nama === currentModalProduct.nama && 
+        item.variantLabel === variant.label &&
+        item.note === note
+      );
+
+      if (existingIdx > -1) {
+        cartItems[existingIdx].qty += currentQty;
+      } else {
+        cartItems.push({
+          nama: currentModalProduct.nama,
+          kategori: currentModalProduct.kategori,
+          gambar: currentModalProduct.gambar,
+          variantLabel: variant.label,
+          hargaText: variant.harga,
+          unitPrice: unitPrice,
+          qty: currentQty,
+          note: note
+        });
+      }
+
+      saveCart();
+      closeProductModal();
+      showToast(`${currentModalProduct.nama} masuk keranjang!`);
+    }
+
+    function updateCartUI() {
+      const totalQty = cartItems.reduce((sum, item) => sum + item.qty, 0);
+      const totalHarga = cartItems.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
+
+      // Update badge atas katalog & modal
+      const topBadge = document.getElementById('top-cart-badge');
+      if (topBadge) topBadge.textContent = totalQty;
+
+      const modalBadge = document.getElementById('modal-cart-badge');
+      if (modalBadge) {
+        modalBadge.textContent = totalQty;
+        if (totalQty > 0) modalBadge.classList.remove('hidden');
+        else modalBadge.classList.add('hidden');
+      }
+
+      // Floating Cart Bar
+      const floatBar = document.getElementById('floating-cart-bar');
+      if (totalQty > 0) {
+        floatBar.classList.remove('hidden');
+        document.getElementById('float-cart-count').textContent = totalQty;
+        document.getElementById('float-cart-total').textContent = totalHarga > 0 ? formatRupiah(totalHarga) : `${totalQty} Item dipilih`;
+      } else {
+        floatBar.classList.add('hidden');
+      }
+    }
+
+    function openCartModal() {
+      renderCartItems();
+      document.getElementById('cart-modal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      refreshIcons();
+    }
+
+    function closeCartModal() {
+      document.getElementById('cart-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function updateCartItemQty(index, delta) {
+      if (!cartItems[index]) return;
+      cartItems[index].qty += delta;
+      if (cartItems[index].qty <= 0) {
+        cartItems.splice(index, 1);
+      }
+      saveCart();
+      renderCartItems();
+    }
+
+    function removeCartItem(index) {
+      cartItems.splice(index, 1);
+      saveCart();
+      renderCartItems();
+    }
+
+    function clearCart() {
+      cartItems = [];
+      saveCart();
+      renderCartItems();
+    }
+
+    function renderCartItems() {
+      const container = document.getElementById('cart-items-container');
+      const totalEl = document.getElementById('cart-modal-total');
+      const checkoutBtn = document.getElementById('btn-checkout-cart');
+      const clearBtn = document.getElementById('btn-clear-cart');
+      const noteBox = document.getElementById('cart-note-box');
+
+      if (cartItems.length === 0) {
+        container.innerHTML = `
+          <div class="py-10 text-center space-y-2">
+            <div class="text-4xl">🛒</div>
+            <p class="text-xs sm:text-sm font-extrabold text-gray-700">Keranjang kamu masih kosong nih</p>
+            <p class="text-xs text-gray-400">Yuk pilih-pilih aplikasi atau layanan favoritmu dulu di katalog!</p>
+          </div>
+        `;
+        totalEl.textContent = "Rp 0";
+        clearBtn.classList.add('hidden');
+        noteBox.classList.add('hidden');
+        checkoutBtn.disabled = true;
+        checkoutBtn.className = "w-full py-3.5 rounded-2xl bg-gray-200 text-gray-400 text-xs sm:text-sm font-extrabold cursor-not-allowed flex items-center justify-center gap-2";
+        return;
+      }
+
+      clearBtn.classList.remove('hidden');
+      noteBox.classList.remove('hidden');
+
+      let grandTotal = 0;
+      let hasUnpriced = false;
+
+      container.innerHTML = cartItems.map((item, idx) => {
+        const sub = item.unitPrice * item.qty;
+        if (item.unitPrice > 0) grandTotal += sub;
+        else hasUnpriced = true;
+
+        return `
+          <div class="bg-white p-3.5 rounded-2xl border border-pink-100 shadow-2xs flex items-start gap-3">
+            <img src="${item.gambar}" alt="${item.nama}" class="w-14 h-14 rounded-xl object-cover border border-pink-50 flex-shrink-0">
+            <div class="flex-grow min-w-0">
+              <div class="flex items-start justify-between gap-2">
+                <h4 class="text-xs sm:text-sm font-extrabold text-gray-800 truncate">${item.nama}</h4>
+                <button type="button" onclick="removeCartItem(${idx})" class="text-gray-300 hover:text-rose-500 transition flex-shrink-0" title="Hapus">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+              <p class="text-[11px] text-gray-500 truncate">${item.variantLabel}</p>
+              ${item.note ? `<p class="text-[10px] text-sky-600 bg-sky-50 px-2 py-0.5 rounded-md inline-block mt-1">Catatan: ${item.note}</p>` : ''}
+              
+              <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-pink-50">
+                <span class="text-xs font-extrabold text-pink-600">${item.unitPrice > 0 ? formatRupiah(sub) : item.hargaText}</span>
+                <div class="flex items-center gap-2 bg-gray-100 px-2 py-0.5 rounded-full">
+                  <button type="button" onclick="updateCartItemQty(${idx}, -1)" class="w-5 h-5 rounded-full bg-white text-gray-700 text-xs font-bold flex items-center justify-center shadow-2xs">-</button>
+                  <span class="text-xs font-extrabold text-gray-800 w-4 text-center">${item.qty}</span>
+                  <button type="button" onclick="updateCartItemQty(${idx}, 1)" class="w-5 h-5 rounded-full bg-pink-500 text-white text-xs font-bold flex items-center justify-center shadow-2xs">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      totalEl.textContent = grandTotal > 0 ? (formatRupiah(grandTotal) + (hasUnpriced ? " + Admin" : "")) : "Sesuai Rincian";
+
+      if (!isStoreOnline) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.className = "w-full py-3.5 rounded-2xl bg-gray-300 text-gray-500 text-xs sm:text-sm font-extrabold cursor-not-allowed flex items-center justify-center gap-2";
+        checkoutBtn.innerHTML = `<i data-lucide="lock" class="w-4 h-4"></i> Toko Sedang Close`;
+      } else {
+        checkoutBtn.disabled = false;
+        checkoutBtn.className = "w-full py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs sm:text-sm font-extrabold shadow-sm transition flex items-center justify-center gap-2";
+        checkoutBtn.innerHTML = `<i data-lucide="message-circle" class="w-4 h-4"></i> Checkout Semua via WhatsApp`;
+      }
+
+      refreshIcons();
+    }
+
+    function checkoutCartToWA() {
+      if (!isStoreOnline) {
+        alert(settings.pesan_offline || "Maaf kak, seller sedang close sementara.");
+        return;
+      }
+      if (cartItems.length === 0) return;
+
+      const cleanWa = (settings.whatsapp || '6281234567890').replace(/[^0-9]/g, '');
+      const globalNote = document.getElementById('cart-global-note').value.trim();
+
+      let grandTotal = 0;
+      let hasUnpriced = false;
+
+      let message = `Halo kak! Aku mau order beberapa produk di *${settings.nama_toko}*:\n\n`;
+      cartItems.forEach((item, idx) => {
+        const sub = item.unitPrice * item.qty;
+        if (item.unitPrice > 0) grandTotal += sub;
+        else hasUnpriced = true;
+
+        const priceLabel = item.unitPrice > 0 ? formatRupiah(sub) : `${item.hargaText} (x${item.qty})`;
+        message += `*${idx + 1}. ${item.nama}* (${item.variantLabel})\n`;
+        message += `   Jumlah: ${item.qty} • Subtotal: ${priceLabel}\n`;
+        if (item.note) message += `   Catatan: ${item.note}\n`;
+        message += `\n`;
+      });
+
+      const totalStr = grandTotal > 0 ? (formatRupiah(grandTotal) + (hasUnpriced ? " + Konfirmasi Admin" : "")) : "Sesuai Rincian";
+      message += `💰 *Total Estimasi:* ${totalStr}\n`;
+      if (globalNote) message += `📝 *Catatan Tambahan:* ${globalNote}\n`;
+      message += `\nMohon info pembayarannya ya kak, terima kasih! 🎀`;
+
+      window.open(`https://wa.me/${cleanWa}?text=${encodeURIComponent(message)}`, '_blank');
+    }
+
+    // Order Langsung 1 Produk
     function submitModalOrder() {
       if (!isStoreOnline) {
         alert(settings.pesan_offline || "Maaf kak, seller sedang close sementara.");
@@ -1260,6 +1596,7 @@
       window.open(`https://wa.me/${cleanWa}?text=${encodeURIComponent(message)}`, '_blank');
     }
 
+    // Render Daftar Review & Modal Kirim Review ke WA
     function renderReviews() {
       const container = document.getElementById('review-container');
       container.innerHTML = reviewsData.map(rev => `
@@ -1345,6 +1682,7 @@
     window.addEventListener('DOMContentLoaded', async () => {
       refreshIcons();
       applySettingsToUI();
+      updateCartUI();
       await loadAllSheetsData();
     });
   </script>
